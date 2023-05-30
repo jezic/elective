@@ -18,7 +18,7 @@ class States:
 
 class MainMenu(States):
     BG_TEXTURE = pygame.transform.scale(pygame.image.load("assets/imgs/bg1.png"), (640, 360))
-    CRISTIK_FONT = pygame.font.SysFont("assets/fonts/Cristik.ttf", 38)
+    CRISTIK_FONT = pygame.font.Font("assets/fonts/Cristik.ttf", 38)
     def __init__(self, screen: pygame.Surface):
         self.Screen = screen
         self.Width = screen.get_width()
@@ -71,8 +71,8 @@ class MainMenu(States):
 
 class CustomizeState(States):
     BG_TEXTURE = pygame.transform.scale(pygame.image.load("assets/imgs/bg2.png"), (640, 360))
-    CRISTIK_FONT = pygame.font.SysFont("assets/fonts/Cristik.ttf", 36)
-    CRISTIK_FONT_L = pygame.font.SysFont("assets/fonts/Cristik.ttf", 50)
+    CRISTIK_FONT = pygame.font.Font("assets/fonts/Cristik.ttf", 36)
+    CRISTIK_FONT_L = pygame.font.Font("assets/fonts/Cristik.ttf", 50)
 
     CAR_SIDE_TEXTURES = [scale_image(pygame.image.load("assets/imgs/Car1 side.png"), 0.3), 
                          scale_image(pygame.image.load("assets/imgs/Car2side.png"), 0.5)]
