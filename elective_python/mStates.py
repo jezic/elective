@@ -17,8 +17,8 @@ class States:
         pass
 
 class MainMenu(States):
-    BG_TEXTURE = pygame.transform.scale(pygame.image.load("elective_python/imgs/bg1.png"), (640, 360))
-    CRISTIK_FONT = pygame.font.SysFont("cristik", 38)
+    BG_TEXTURE = pygame.transform.scale(pygame.image.load("assets/imgs/bg1.png"), (640, 360))
+    CRISTIK_FONT = pygame.font.SysFont("assets/fonts/Cristik.ttf", 38)
     def __init__(self, screen: pygame.Surface):
         self.Screen = screen
         self.Width = screen.get_width()
@@ -70,12 +70,12 @@ class MainMenu(States):
 
 
 class CustomizeState(States):
-    BG_TEXTURE = pygame.transform.scale(pygame.image.load("elective_python/imgs/bg2.png"), (640, 360))
-    CRISTIK_FONT = pygame.font.SysFont("cristik", 36)
-    CRISTIK_FONT_L = pygame.font.SysFont("cristik", 50)
+    BG_TEXTURE = pygame.transform.scale(pygame.image.load("assets/imgs/bg2.png"), (640, 360))
+    CRISTIK_FONT = pygame.font.SysFont("assets/fonts/Cristik.ttf", 36)
+    CRISTIK_FONT_L = pygame.font.SysFont("assets/fonts/Cristik.ttf", 50)
 
-    CAR_SIDE_TEXTURES = [scale_image(pygame.image.load("elective_python/imgs/Car1 side.png"), 0.3), 
-                         scale_image(pygame.image.load("elective_python/imgs/Car2side.png"), 0.5)]
+    CAR_SIDE_TEXTURES = [scale_image(pygame.image.load("assets/imgs/Car1 side.png"), 0.3), 
+                         scale_image(pygame.image.load("assets/imgs/Car2side.png"), 0.5)]
 
     def __init__(self, screen: pygame.Surface):
         self.Screen = screen
@@ -185,9 +185,9 @@ class CustomizeState(States):
 
 
 class PlayState(States):
-    CAR_TEXTURES = [scale_image(pygame.image.load("elective_python/imgs/Car 1.png"), 0.03),
-                    scale_image(pygame.image.load("elective_python/imgs/Car 2.png"), 0.03)]
-    TRACK = pygame.transform.scale(pygame.image.load("elective_python/imgs/Snowy map.png"), (640, 360))
+    CAR_TEXTURES = [scale_image(pygame.image.load("assets/imgs/Car 1.png"), 0.03),
+                    scale_image(pygame.image.load("assets/imgs/Car 2.png"), 0.03)]
+    TRACK = pygame.transform.scale(pygame.image.load("assets/imgs/Snowy map.png"), (640, 360))
 
     def __init__(self, screen: pygame.Surface, car1_texture, car2_texture):
         screen = pygame.display.set_mode((640, 480))
