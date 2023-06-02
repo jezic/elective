@@ -3,6 +3,7 @@ import pygame
 import mPlayer
 
 pygame.font.init()
+pygame.mixer.init()
 
 def scale_image(img, factor):
     size = round(img.get_width() * factor), round(img.get_height() * factor)
@@ -35,7 +36,11 @@ class MainMenu(States):
 
         self.ChangeState = False
         self.NextState = None
-        print("MAIN MENU STATE")
+
+        pygame.mixer.music.stop()
+        self.Lobby_Sound = pygame.mixer.music.load("assets/fx/lobby_sound.mp3")
+        pygame.mixer.music.set_volume(0.1)
+        pygame.mixer.music.play(-1)
 
     def handleEvents(self, event: pygame.event):
         self.StartButton.handleEvents(event)
@@ -43,7 +48,7 @@ class MainMenu(States):
             
     
     def update(self, dt):
-        if (self.StartButton.Activated):
+        if self.StartButton.Activated:
             self.ChangeState = True
             self.NextState = CustomizeState(self.Screen)
         elif self.QuitButton.Activated:
@@ -76,6 +81,9 @@ class CustomizeState(States):
 
     CAR_SIDE_TEXTURES = [scale_image(pygame.image.load("assets/imgs/Car1 side.png"), 0.3), 
                          scale_image(pygame.image.load("assets/imgs/Car2side.png"), 0.5)]
+    
+    CAR_SOUNDS = [pygame.mixer.Sound("assets/fx/car_1_sound.mp3"),
+                  pygame.mixer.Sound("assets/fx/car_2_sound.mp3")]
 
     def __init__(self, screen: pygame.Surface):
         self.Screen = screen
@@ -84,7 +92,6 @@ class CustomizeState(States):
 
         self.ChangeState = False
         self.NextState = None
-        print("CUSTOMIZE MENU STATE")
 
         self.DisplayCarNo = 0
         self.PlayerNoDisplay = 0
@@ -114,6 +121,9 @@ class CustomizeState(States):
         self.SelectText = self.CRISTIK_FONT.render("SELECT", True, ((0, 74, 173)))
         self.PlayerNoTexts = [self.CRISTIK_FONT_L.render("Player One", True, (0, 74, 173)),
                               self.CRISTIK_FONT_L.render("Player Two", True, (255, 32, 32))]
+        pygame.mixer.Sound.play(self.CAR_SOUNDS[0])
+        
+        
     
     def handleEvents(self, event: pygame.event):
         self.PlayButton.handleEvents(event)
@@ -124,8 +134,10 @@ class CustomizeState(States):
     def update(self, dt):
         if self.RightArrowButton.Activated:
             self.DisplayCarNo = 1
+            pygame.mixer.Sound.play(self.CAR_SOUNDS[1])
         elif self.LeftArrowButton.Activated:
             self.DisplayCarNo = 0
+            pygame.mixer.Sound.play(self.CAR_SOUNDS[0])
 
         match self.PlayerNoDisplay:
             case 0:
@@ -150,9 +162,10 @@ class CustomizeState(States):
     def render(self, surface: pygame.Surface):
         surface.blit(self.BG_TEXTURE, (0,0))
 
-        surface.blit(self.CAR_SIDE_TEXTURES[self.DisplayCarNo], ((self.Width - self.CAR_SIDE_TEXTURES[self.DisplayCarNo].get_width()) / 2
+        surface.blit(self.CAR_SIDE_TEXTURES[self.DisplayCarNo], 
+                     ((self.Width - self.CAR_SIDE_TEXTURES[self.DisplayCarNo].get_width()) / 2
             , (self.Height - self.CAR_SIDE_TEXTURES[self.DisplayCarNo].get_height()) / 2))
-        
+
         if self.PlayerNoDisplay == 0:
             surface.blit(self.SelectText, 
                         ((self.Width - self.PlayButton.Width) + 
@@ -185,29 +198,96 @@ class CustomizeState(States):
 
 
 class PlayState(States):
-    CAR_TEXTURES = [scale_image(pygame.image.load("assets/imgs/Car 1.png"), 0.03),
-                    scale_image(pygame.image.load("assets/imgs/Car 2.png"), 0.03)]
-    TRACK = pygame.transform.scale(pygame.image.load("assets/imgs/Snowy map.png"), (640, 360))
+    CAR_TEXTURES = [scale_image(pygame.image.load("assets/imgs/Car 1.png"), 0.015),
+                    scale_image(pygame.image.load("assets/imgs/Car 2.png"), 0.015)]
+    TRACK = pygame.transform.scale(pygame.image.load("assets/imgs/track.png"), (640, 360))
+    TRACK_BORDER = pygame.transform.scale(pygame.image.load("assets/imgs/track_border.png"), (640, 360))
+    TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER)
+
+    CRISTIK_FONT = pygame.font.Font("assets/fonts/Cristik.ttf", 36)
+    CRISTIK_FONT_L = pygame.font.Font("assets/fonts/Cristik.ttf", 50)
 
     def __init__(self, screen: pygame.Surface, car1_texture, car2_texture):
-        screen = pygame.display.set_mode((640, 480))
         self.Width = screen.get_width()
         self.Height = screen.get_height()
+        self.Screen = screen
         self.ChangeState = False
         self.NextState = States()
+        self.Win = 0
+
+        self.CAR_TEXTURES[0].set_alpha(255)
+        self.CAR_TEXTURES[1].set_alpha(255)
+        self.TRACK.set_alpha(255)
+
         self.Player1 = mPlayer.Player(self.CAR_TEXTURES[car1_texture], "1")
+        self.Player1.setPosition(33, 175)
+
         self.Player2 = mPlayer.Player(self.CAR_TEXTURES[car2_texture], "2")
-        print("PLAY STATE")
+        self.Player2.setPosition(55, 175)
+
+        self.Player1.initializePowerUp(car1_texture, self.Player2)
+        self.Player2.initializePowerUp(car2_texture, self.Player1)
+
+        self.FinishLine2 = pygame.Rect(35, 220, 50, 5)
+        self.WinnerText = self.CRISTIK_FONT.render("", True, (0, 74, 173))
+
+        self.QuitButton = mButton.Button(128, 48)
+        self.QuitButton.setPosition((self.Width - self.QuitButton.Width) / 2, 
+                                     (self.Height - self.QuitButton.Height) / 2 + 50)
+        self.QuitText = self.CRISTIK_FONT.render("QUIT", True, (255, 32, 32))
+
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("assets/fx/race_sound.mp3")
+        pygame.mixer.music.set_volume(0.1)
+        pygame.mixer.music.play(-1)
+        
 
     def handleEvents(self, event: pygame.event):
-        pass
+        self.QuitButton.handleEvents(event)
+        self.Player1.handleEvents(event)
+        self.Player2.handleEvents(event)
     
     def update(self, dt):
-        self.Player1.update(dt)
-        self.Player2.update(dt)
+        if self.Win == 0:
+            self.Player1.update(dt, self.TRACK_BORDER_MASK, 0, 0)
+            self.Player2.update(dt, self.TRACK_BORDER_MASK, 0, 0)
+
+            if ((self.Player1.X > self.FinishLine2.x) and 
+                (self.Player1.X < self.FinishLine2.x + self.FinishLine2.width) and
+                (self.Player1.Y > self.FinishLine2.y) and 
+                (self.Player1.Y < self.FinishLine2.y + self.FinishLine2.height)):
+                self.Win = 1
+
+            if ((self.Player2.X > self.FinishLine2.x) and 
+                (self.Player2.X < self.FinishLine2.x + self.FinishLine2.width) and
+                (self.Player2.Y > self.FinishLine2.y) and 
+                (self.Player2.Y < self.FinishLine2.y + self.FinishLine2.height)):
+                self.Win = 2
+        elif self.Win == 1:
+            self.WinnerText = self.CRISTIK_FONT.render("Player 1 Wins!", True, ((0, 74, 173)))
+            if self.QuitButton.Activated:
+                self.ChangeState = True
+                self.NextState = MainMenu(self.Screen)
+        elif self.Win == 2:
+            self.WinnerText = self.CRISTIK_FONT.render("Player 2 Wins!", True, ((0, 74, 173)))
+            if self.QuitButton.Activated:
+                self.ChangeState = True
+                self.NextState = MainMenu(self.Screen)
+
 
     def render(self, surface: pygame.Surface):
         surface.blit(self.TRACK, (0, 0))
+        if self.Win != 0:
+            surface.blit(self.WinnerText, 
+                         ((self.Width - self.WinnerText.get_width()) / 2, 
+                          (self.Height - self.WinnerText.get_height()) / 2))
+            self.TRACK.set_alpha(20)
+            self.CAR_TEXTURES[0].set_alpha(20)
+            self.CAR_TEXTURES[1].set_alpha(20)
+            surface.blit(self.QuitText, 
+                     ((self.Width - self.QuitText.get_width()) / 2, 
+                      (50 + (self.Height - self.QuitText.get_height()) / 2)))
+            
         self.Player1.render(surface)
         self.Player2.render(surface)
         
